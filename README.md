@@ -21,7 +21,7 @@ You can modify parameters in the config.py file for different models and dataset
 
     python main.py
 
-You can run the [CaMU.ipynb](CaMU.ipynb) file to reproduce the reported results.
+You can run the [CaMU.ipynb](CaMU.ipynb) file for easier debugging.
 
 ## License
 
