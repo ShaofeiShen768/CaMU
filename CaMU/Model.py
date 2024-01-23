@@ -13,10 +13,10 @@ import torchsummary
 import torchvision.transforms as T
 import config as cf
 from torchvision import models, transforms 
-from  torchvision.models import ResNet18_Weights
-from transformers import BertModel, BertTokenizer, AdamW, get_linear_schedule_with_warmup
 
-
+'''
+CNN model for MNIST and Fashion-MNIST datasets
+'''
 class CNN(nn.Module):
     def __init__(self):
         super(CNN, self).__init__()
@@ -48,7 +48,9 @@ class CNN(nn.Module):
         embedding = self.fc1(x)
         output = self.fc2(embedding)
         return output, embedding
-    
+'''
+ResNet model for Cifar10 and Cifar100 datasets
+'''    
 class ResNet(nn.Module):
     def __init__(self):
         super(ResNet, self).__init__()

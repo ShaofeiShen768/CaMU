@@ -23,19 +23,15 @@ from torch.utils.data import ConcatDataset
 '''
 Construct the dataset used in unlearning.
 The dataset contains three senarios
-1. some data in the training dataset are misclassified. We aim to remove such data
-2. We aim to remove a imbalanced dataset from the training data
+2. We aim to remove random samples from the training data
 3. We aim to remove some catagories from the training data
 '''
 
-
-        
-    
 class data_construction():
     
     def __init__(self, dataset_name):
         
-        # load MNIST        
+        # Load MNIST        
         if dataset_name == 'Fashion':
             self.train_data = datasets.FashionMNIST(
                 root = '../data',
@@ -50,22 +46,22 @@ class data_construction():
                 transform = ToTensor()
             )
             
-        # load CIFAR10       
+        # Load CIFAR10       
         elif dataset_name == 'CIFAR10':
             
             transforms_cifar_train = transforms.Compose([
                 transforms.Resize((224, 224)),   
                 transforms.RandomResizedCrop(224),
-                transforms.RandomHorizontalFlip(), # data augmentation
+                transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
-                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]) # normalization
+                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
             ])
             
             transforms_cifar_test = transforms.Compose([
                 transforms.Resize((224, 224)),   
                 transforms.CenterCrop((224, 224)),
                 transforms.ToTensor(),
-                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]) # normalization
+                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
             ])
         
         
@@ -82,22 +78,22 @@ class data_construction():
                 transform = transforms_cifar_test,
                 download = True,  
             )
-            
+        # Load CIFAR100    
         elif dataset_name == 'CIFAR100':
             
             transforms_cifar_train = transforms.Compose([
                 transforms.Resize((224, 224)),   
                 transforms.RandomResizedCrop(224),
-                transforms.RandomHorizontalFlip(), # data augmentation
+                transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
-                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]) # normalization
+                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
             ])
             
             transforms_cifar_test = transforms.Compose([
                 transforms.Resize((224, 224)),   
                 transforms.CenterCrop((224, 224)),
                 transforms.ToTensor(),
-                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]) # normalization
+                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
             ])
         
         
@@ -114,7 +110,7 @@ class data_construction():
                 transform = transforms_cifar_test,
                 download = True,  
             )
-        
+        # Load Fashion-MNIST
         elif dataset_name == 'Digit':
             
             self.train_data = datasets.MNIST(
@@ -136,13 +132,13 @@ class data_construction():
 
     
     # Construct a dataset contains imbalanced data to be unlearned
-    def class_data(self, num = None):
+    def class_data(self, proportion = None):
         
         # set random proportion of unlearning data points for each class
-        if num is None:
+        if proportion is None:
             random_array = np.random.random(len(set(self.train_data.targets.tolist())))
         else:
-            random_array = num
+            random_array = proportion
 
         class_count = np.zeros(len(set(np.array(self.train_data.targets).tolist())))
         
@@ -179,13 +175,11 @@ class data_construction():
         sample_idx = random.sample(normal_idx, len(unlearn_idx))
             
             
-        # obtain unlearn remain sample data from train data
-        
-            
+        # obtain unlearn remain sample data from train data    
         unlearn_data = Subset(self.train_data, unlearn_idx) 
         if cf.DATASET == 'CIFAR100':
             unlearn_data_all = ConcatDataset([unlearn_data for i in range(10)])
-            sample_idx = random.sample(normal_idx, len(unlearn_idx) * 10)
+            sample_idx = random.sample(normal_idx, len(unlearn_data_all))
             unlearn_data = unlearn_data_all
         remain_data = Subset(self.train_data, normal_idx)
         sample_data = Subset(self.train_data, sample_idx)
@@ -222,36 +216,35 @@ class data_construction():
         return unlearn_data, remain_data, sample_data
     
     
-    def construct_data(self, type, num, batch_size = cf.BATCH_SIZE):
+    def construct_data(self, type, num, batch_size = 32):
         
         if type == 'class':
             unlearn_data, remain_data, sample_data = self.class_data(num)
         elif type == 'random':
-            unlearn_data, remain_data, sample_data = self.random_data(0.15)
+            unlearn_data, remain_data, sample_data = self.random_data(0.10)
         # build data loaders   
         print(set(np.array(self.train_data.targets).tolist()))         
         loaders = {
             'train' : torch.utils.data.DataLoader(self.train_data, 
                                                 batch_size=batch_size, 
                                                 shuffle=True, 
-                                                num_workers=cf.NUM_WORKERS),
+                                                num_workers=3),
             
             'unlearn'  : torch.utils.data.DataLoader(unlearn_data, 
                                                 batch_size=batch_size, 
                                                 shuffle=True, 
-                                                num_workers=cf.NUM_WORKERS),
+                                                num_workers=3),
             'source'  : torch.utils.data.DataLoader(remain_data, 
                                                 batch_size=batch_size, 
                                                 shuffle=True, 
-                                                num_workers=cf.NUM_WORKERS),
+                                                num_workers=3),
             'test'  : torch.utils.data.DataLoader(self.test_data, 
                                                 batch_size=batch_size, 
                                                 shuffle=False, 
-                                                num_workers=cf.NUM_WORKERS),
+                                                num_workers=3),
             'sample' : torch.utils.data.DataLoader(sample_data, 
                                                 batch_size=batch_size, 
                                                 shuffle=True, 
-                                                num_workers=cf.NUM_WORKERS),
+                                                num_workers=3),
         }
-
         return loaders

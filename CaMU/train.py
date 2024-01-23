@@ -22,7 +22,7 @@ def train(model, train_loader):
     model.train()
     optimizer = optim.Adam(model.parameters(), lr = 0.001, weight_decay=1e-4) 
     loss_func = nn.CrossEntropyLoss()   
-    for epoch in range(10):
+    for epoch in range(20):
         for i, (data, targets) in enumerate(train_loader):
             
             data = data.cuda() 
@@ -32,13 +32,8 @@ def train(model, train_loader):
             
             loss = loss_func(output, targets)
             optimizer.zero_grad()           
-            
             loss.backward()    
-            
-            optimizer.step() 
-
-    
-                                    
+            optimizer.step()                     
                 
 def test(trained_model, test_loader, output_label = None):
     trained_model = trained_model.cuda()
@@ -52,8 +47,7 @@ def test(trained_model, test_loader, output_label = None):
         
         for i, (x,y) in enumerate(test_loader):
             
-            original_targets = torch.cat((original_targets, y.cpu()),dim=0)    
-                            
+            original_targets = torch.cat((original_targets, y.cpu()),dim=0)           
             x = x.cuda()
             y = y.type(torch.LongTensor)
             y = y.cuda()
@@ -64,8 +58,7 @@ def test(trained_model, test_loader, output_label = None):
             targets = torch.cat((targets, y.cpu()),dim=0)
             
             total += y.size(0)
-            correct += (predicted == y).sum().item()   
-                               
+            correct += (predicted == y).sum().item()           
         preds = all_preds.argmax(dim=1)
         targets = np.array(targets)
         acc = 100.0 * correct / total
@@ -93,7 +86,7 @@ def train_attack_model(trained_model, train_loader, test_loader):
     
     trained_model.cuda()        
     trained_model.eval()
-    N_unlearn_sample = cf.UNLEARN_PAIR_SAMPLES
+    N_unlearn_sample = 4000
     ####
     train_data = torch.zeros([1,cf.CLASS_COUNT])
     train_data = train_data.cuda()
@@ -112,7 +105,7 @@ def train_attack_model(trained_model, train_loader, test_loader):
     train_data = train_data.cpu()
     train_data = train_data.detach().numpy()
     
-    N_unlearn_sample = cf.UNLEARN_PAIR_SAMPLES
+    N_unlearn_sample = 4000
     test_data = torch.zeros([1,cf.CLASS_COUNT])
     test_data = test_data.cuda()
     with torch.no_grad():
@@ -138,7 +131,7 @@ def train_attack_model(trained_model, train_loader, test_loader):
     att_X.sort(axis=1)
     
     
-    X_train, X_test, y_train, y_test = train_test_split(att_X, att_y, test_size = 0.1, shuffle=True)
+    X_train, X_test, y_train, y_test = train_test_split(att_X, att_y, test_size = 0.01, shuffle=True)
     
     attacker = XGBClassifier(n_estimators = 100,
                               n_jobs = -1,
@@ -190,7 +183,7 @@ def attack(trained_model, attack_model, target_loaders, test_loader):
     
     with torch.no_grad():
         for batch_idx, (data, target) in enumerate(test_loader):
-            if(test_X0.shape[0] < cf.UNLEARN_PAIR_SAMPLES):
+            if(test_X0.shape[0] < 4000):
                 data = data.cuda()
                 out, _ = trained_model(data)
                 test_X0  = torch.cat([test_X0 , out])
