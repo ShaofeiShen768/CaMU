@@ -1,4 +1,4 @@
-name: nips
+name: camu
 channels:
   - pytorch
   - nvidia
