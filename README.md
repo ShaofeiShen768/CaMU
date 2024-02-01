@@ -29,5 +29,11 @@ This project is under the MIT license. See [LICENSE](License) for details.
 
 ## Citation
 
-TBD
+@misc{shen2024camu,<br> 
+      title={CaMU: Disentangling Causal Effects in Deep Model Unlearning}, <br> 
+      author={Shaofei Shen and Chenhao Zhang and Alina Bialkowski and Weitong Chen and Miao Xu},<br> 
+      year={2024},<br> 
+      eprint={2401.17504},<br> 
+      archivePrefix={arXiv},<br> 
+}
    
